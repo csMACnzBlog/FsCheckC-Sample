@@ -14,10 +14,20 @@ public class HoursController : ControllerBase
     }
 
     [HttpGet]
-    public IEnumerable<DateTime> GetHoursBetween(DateTime start, DateTime end)
+    public async Task<IEnumerable<DateTime>> GetHoursBetween(
+        [FromQuery] DateTime start,
+        [FromQuery] DateTime end,
+        [FromServices] IMediator mediator)
     {
-        return Enumerable.Range(1, 5)
-        .Select(index => DateTime.UtcNow.Date + TimeSpan.FromHours(index))
-        .ToArray();
+        try
+        {
+            Commands.GetHoursBetween.Request request = new(start, end);
+
+            return await mediator.Send(request);
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            throw new BadHttpRequestException(ex.Message, ex);
+        }
     }
 }
